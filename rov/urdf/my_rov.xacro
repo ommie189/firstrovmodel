@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="myrobot">
+
+
+<!-- XACRO    -->
+
+<xacro:property name="axle_dimensions" value="0.07 0.3 0.07"/>
+<xacro:property name="thruster_dimensions" value="0.35 0.06 0.14"/>
+<xacro:property name="exhaust_dimensions" value="0.05 0.04 0.09"/>
+<xacro:property name="axis_orientation" value="0 1 0"/>
+<xacro:property name="base_dimensions" value="0.81 0.1 0.2"/>
+
+<!--BASE DEFINITION     -->
+
+    <link name="base_link">
+        
+        <collision>
+            <geometry>
+                <box size="0.81 0.1 0.2"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <geometry>
+                <box size="0.81 0.1 0.2"/>
+            </geometry>
+        </visual>
+        
+        <inertial>
+            <mass value="10"/>
+            <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+        </inertial>
+    </link>
+    <gazebo reference="base_link">
+        <material>Gazebo/Yellow</material>
+    </gazebo>
+    
+
+<!--AXLE -->
+
+    <xacro:macro name="axle" params="prefix reflect">
+        <link name="${prefix}_axle">
+        <collision>
+                <geometry>
+                    <box size="${axle_dimensions}"/>
+                </geometry>
+            </collision>
+            <visual>
+                <geometry>
+                    <box size="${axle_dimensions}"/>
+                </geometry>
+            </visual>
+            
+            <inertial>
+                <mass value="3"/>
+                <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+            </inertial>
+        </link>
+        <joint name="base_to_${prefix}_axle" type="fixed">
+            <parent link="base_link"/>
+            <child link="${prefix}_axle"/>
+            <origin xyz="${reflect*0} 0 0"/>
+        </joint>
+        <gazebo reference="${prefix}_axle">
+            <material>Gazebo/Black</material>
+        </gazebo>
+    </xacro:macro>
+
+   
+    <xacro:axle prefix="centre" reflect="-1"/>
+    
+
+<!-- THURSTER -->
+
+    <xacro:macro name="thruster" params="prefix suffix reflect">
+        <link name="${prefix}_${suffix}_thruster">
+        <collision>
+                <geometry>
+                    <box size="${thruster_dimensions}"/>
+                </geometry>
+            </collision>
+            <visual>
+                <geometry>
+                    <box size="${thruster_dimensions}"/>
+                </geometry>
+                <origin xyz="0 ${reflect*0.03} 0"/>
+            </visual>
+            
+            <inertial>
+                <mass value="2"/>
+                <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+            </inertial>
+        </link>
+        <joint name="base_to_${prefix}_${suffix}_thruster" type="continuous">
+            <parent link="${prefix}_axle"/>
+            <child link="${prefix}_${suffix}_thruster"/>
+            <axis xyz="${axis_orientation}"/>
+            <origin xyz="0 ${reflect*0.15} 0"/>
+        </joint>
+        <gazebo reference="${prefix}_${suffix}_thruster">
+            <material>Gazebo/Blue</material>
+        </gazebo>
+        <transmission name="${prefix}_${suffix}_thruster_transmission">
+            <type>transmission_interface/SimpleTransmission</type>
+            <actuator name="${prefix}_${suffix}_thruster_motor">
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+            <joint name="base_to_${prefix}_${suffix}_thruster">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            </joint>
+        </transmission>
+    </xacro:macro>
+
+    <xacro:thruster prefix="centre"  suffix="left"  reflect="1"  />
+    <xacro:thruster prefix="centre"  suffix="right" reflect="-1" />
+
+<!-- EXHAUST -->
+
+
+    <xacro:macro name="exhaust" params="prefix suffix reflect">
+        <link name="${prefix}_${suffix}_exhaust">
+        <collision>
+                <geometry>
+                    <box size="${exhaust_dimensions}"/>
+                </geometry>
+            </collision>
+            <visual>
+                <geometry>
+                    <box size="${exhaust_dimensions}"/>
+                </geometry>
+            </visual>
+            
+            <inertial>
+                <mass value="1"/>
+                <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+            </inertial>
+        </link>
+        <joint name="base_to_${prefix}_${suffix}_exhaust" type="fixed">
+            <parent link="${prefix}_${suffix}_thruster"/>
+            <child link="${prefix}_${suffix}_exhaust"/>
+            <origin xyz="-0.195 ${reflect*0.03} 0"/>
+        </joint>
+        <gazebo reference="${prefix}_${suffix}_exhaust">
+            <material>Gazebo/Red</material>
+        </gazebo>
+    </xacro:macro>
+
+    <xacro:exhaust prefix="centre"  suffix="left"  reflect="1"  />
+    <xacro:exhaust prefix="centre"  suffix="right" reflect="-1" />
+
+<!--############################################################################-->
+<!--####################- -         TRANSMISSIONS        - -####################-->
+
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+          <robotNamespace>/</robotNamespace>
+        </plugin>
+    </gazebo>
+
+</robot>

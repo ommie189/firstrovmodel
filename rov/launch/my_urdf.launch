@@ -1,0 +1,11 @@
+<launch>
+    <!--Open empty underwater world into Gazebo.
+    World has to be open first to be able to spawn the robot within it -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+
+    <param name="robot_description" command="xacro '$(find rov)/urdf/my_rov.xacro'"/>
+    <!--spawning the robot-->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model my_rov"/>
+
+    <node name="teleop_wrench_keyboard" pkg="ris_project" type="teleop_wrench_keyboard.py"/>
+</launch>
